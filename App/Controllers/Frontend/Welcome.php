@@ -10,13 +10,13 @@ class Welcome extends Controller
     {
         parent::__construct();
 
-        $this->model('user_admin');
+        //$this->model('user_admin');
     }
 
     public function index()
     {
-		//$data = $this->user_admin->where('id',1)->get();
-		$data['date'] = date('Y');
+        //$data = $this->user_admin->where('id',1)->get();
+        $data['date'] = date('Y');
         $this->render('frontend\welcome', $data);
     }
 }
