@@ -10,6 +10,5 @@ $router = new Router();
  */
 
 $router->frontend->add('GET', '/', 'Welcome', 'index');
-$router->frontend->add('GET', '/a/a', 'Welcome', 'index');
 
 return $router;
