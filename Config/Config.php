@@ -11,7 +11,7 @@ return [
         'host' => 'localhost',
         'user' => 'root',
         'password' => '',
-        'dbname' => 'zahm',
+        'dbname' => '',
         'prefix' => '',
     ],
     ],
