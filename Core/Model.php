@@ -110,7 +110,8 @@ class Model
     public function save($data, $update = [])
     {
         if ($update) {
-            $query = $this->builder->update($data, $update)->compile();
+            list($key,$val) = $update;
+            $query = $this->builder->update($data)->where($key,$val)->compile();
         } else {
             $query = $this->builder->insert($data)->compile();
         }
