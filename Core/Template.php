@@ -58,7 +58,7 @@ class Template
 
     public function exception($message)
     {
-        $this->template('Error/default');
+        $this->template('error/default');
         $this->render(null, ['error_message' => $message, 'date' => date('Y')]);
         exit;
     }
