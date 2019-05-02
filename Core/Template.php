@@ -6,7 +6,7 @@ class Template
 {
     protected $template;
 
-    public function template($template)
+    public function setTemplate($template)
     {
         $template = str_replace('\\', DS, $template);
         $template = '..'.DS._VIEW.$template.'.html';
@@ -23,7 +23,7 @@ class Template
     public function render($template = null, $data = [], $return = false)
     {
         if (null !== $template) {
-            $this->template($template);
+            $this->setTemplate($template);
         }
 
         $this->env = $GLOBALS['config']->env;
@@ -58,7 +58,7 @@ class Template
 
     public function exception($message)
     {
-        $this->template('error/default');
+        $this->setTemplate('error/default');
         $this->render(null, ['error_message' => $message, 'date' => date('Y')]);
         exit;
     }
@@ -96,8 +96,6 @@ class Template
      *
      * @param string $var
      * @param array  $data
-     * @param string $template
-     * @param mixed  $string
      *
      * @return array
      */
