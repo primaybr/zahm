@@ -5,17 +5,17 @@ namespace Core\Database;
 class Builder
 {
     public $binds;
-    protected $q_select;
-    protected $q_from;
-    protected $q_where;
-    protected $q_limit;
-    protected $q_offset;
-    protected $q_where_in;
-    protected $q_join;
-    protected $q_insert;
-    protected $q_update;
-    protected $q_delete;
-    protected $q_order_by;
+    public $q_select;
+    public $q_from;
+    public $q_where;
+    public $q_limit;
+    public $q_offset;
+    public $q_where_in;
+    public $q_join;
+    public $q_insert;
+    public $q_update;
+    public $q_delete;
+    public $q_order_by;
     protected $table;
 
     public function __construct($table)
@@ -51,6 +51,15 @@ class Builder
             $this->q_insert = "INSERT INTO `{$this->table}` ({$field_data}) VALUES ({$value_data})";
         }
 
+        return $this;
+    }
+    
+    public function insertIgnore($data)
+    {
+        $this->insert($data);
+
+        $this->q_insert = str_replace("INTO", "IGNORE INTO", $this->q_insert);
+        
         return $this;
     }
 
@@ -145,11 +154,7 @@ class Builder
 
         $query = "`${key}` ${type} :${key}";
 
-        if ('LIKE' == $type || 'NOT LIKE' == $type) {
-            $this->binds[$key] = "%${value}%";
-        } else {
-            $this->binds[$key] = $value;
-        }
+        $this->binds[$key] = $value;
 
         $result = $where.$query;
 
@@ -203,17 +208,15 @@ class Builder
 
     public function offset($offset = '')
     {
-        $this->q_offset = ' OFFSET :offset';
-        $this->binds['offset'] = $offset;
-
+        $this->q_offset = " OFFSET $offset";
+        
         return $this;
     }
 
     public function limit($limit = '')
     {
-        $this->q_limit = ' LIMIT :limit';
-        $this->binds['limit'] = $limit;
-
+        $this->q_limit = " LIMIT $limit";
+        
         return $this;
     }
 
@@ -234,10 +237,15 @@ class Builder
 
     public function orderBy($order_by, $order)
     {
-        $this->q_order_by = ' ORDER BY :order_by :order';
-        $this->binds['order_by'] = $order_by;
-        $this->binds['order'] = $order;
+        $this->q_order_by = " ORDER BY $order_by $order";
 
+        return $this;
+    }
+    
+    public function groupBy($groupby)
+    {
+        $this->q_group_by = " GROUP BY $groupby";
+        
         return $this;
     }
 
@@ -252,6 +260,8 @@ class Builder
         } elseif (!empty($this->q_delete)) {
             $sql = $this->q_delete;
         }
+        
+        $this->q_select = $this->q_insert = $this->q_update = $this->q_where = $this->q_delete = $this->q_offset = $this->q_limit = "";
 
         return str_replace("''", "'", $sql);
     }
