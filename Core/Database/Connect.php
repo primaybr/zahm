@@ -63,8 +63,10 @@ class Connect
 
     public function arrayBind($data = [])
     {
-        foreach ($data as $k => $v) {
-            $this->bind(":${k}", $v);
+        if ($data) {
+            foreach ($data as $k => $v) {
+                $this->bind(":${k}", $v);
+            }
         }
     }
 
