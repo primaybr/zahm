@@ -12,6 +12,7 @@ class Model
     protected $fields = '*';
     protected $primary_key;
     protected $return_type = 'array';
+    protected $ignore_duplicate = false;
 
     public function __construct($table, $database)
     {
@@ -27,8 +28,8 @@ class Model
         $this->builder = new Database\Builder($this->table);
         $this->primary_key = $this->_setPrimaryKey();
     }
-	
-	/**
+    
+    /**
      * The "setDatabase" function.
      *
      * select database configuration
@@ -71,25 +72,34 @@ class Model
 
         return $this;
     }
-	
-	public function where($key = '', $value = '', $type = '=')
-	{
-		$this->builder->where($key,$value,$type);
-		
-		return $this;
-	}
-
-    public function get($limit = 20, $offset = 0)
+    
+    public function where($key = '', $value = '', $type = '=')
     {
-        $query = $this->builder->select($this->fields)
-            ->offset($offset)
-            ->limit($limit)
-            ->compile()
-        ;
-		debug($query);
+        $this->builder->where($key, $value, $type);
+        
+        return $this;
+    }
+
+    public function get($limit = 'all', $offset = 0)
+    {
+        if ($limit != 'all') {
+            $this->builder->limit($limit);
+            
+            if ($offset) {
+                $this->builder->offset($offset);
+            }
+        }
+        
+        $query = $this->builder->select($this->fields)->compile();
+        
         $this->db->query($query);
         $this->db->arrayBind($this->builder->binds);
-
+        $this->builder->binds = [];
+        
+        if ($limit == 1) {
+            return $this->db->single();
+        }
+        
         return $this->db->result($this->return_type);
     }
 
@@ -106,19 +116,34 @@ class Model
 
         return $this;
     }
+    
+    public function ignoreDuplicate()
+    {
+        $this->ignore_duplicate = true;
+        
+        return $this;
+    }
 
-    public function save($data, $update = [])
+    public function save($data, $update = false)
     {
         if ($update) {
-            list($key,$val) = $update;
-            $query = $this->builder->update($data)->where($key,$val)->compile();
+            if (!$this->builder->q_where) {
+                die('Where is not defined, process terminated.');
+            }
+            $query = $this->builder->update($data)->compile();
         } else {
-            $query = $this->builder->insert($data)->compile();
+            if ($this->ignore_duplicate) {
+                $query = $this->builder->insertIgnore($data)->compile();
+            } else {
+                $query = $this->builder->insert($data)->compile();
+            }
         }
 
         $this->db->query($query);
         $this->db->arrayBind($this->builder->binds);
 
+        $this->builder->binds = [];
+        
         if ($this->db->execute()) {
             if ($update) {
                 return $this->db->rowCount();
@@ -136,7 +161,8 @@ class Model
             $query = $this->builder->delete($data)->compile();
             $this->db->query($query);
             $this->db->arrayBind($this->builder->binds);
-
+            $this->builder->binds = [];
+            
             if ($this->db->execute()) {
                 return $this->db->rowCount();
             }
@@ -149,9 +175,10 @@ class Model
     {
         $query = $this->builder->select('')->count()->compile();
         $this->db->query($query);
-
+        
         if ($this->db->execute()) {
-            return $this->db->rowCount();
+            $count = $this->db->result('column');
+            return reset($count);
         }
 
         return false;
@@ -189,7 +216,8 @@ class Model
 
         $this->db->query($query);
         $this->db->arrayBind($this->builder->binds);
-
+        $this->builder->binds = [];
+        
         return $this->db->result($this->return_type);
     }
 
